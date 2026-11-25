@@ -6,30 +6,39 @@ namespace ChromeProfileLauncher.Shared;
 
 public static class SharedTheme
 {
+    public const int ContentInset = 3;
+    public const int WindowVerticalInset = 4;
+    public const int ActionBarHeight = 34;
+    public const int BottomTextHeight = 42;
+    public const int StatusTextHeight = 24;
+    public const int ProgressTextHeight = 18;
+    public const int HeaderHeight = 28;
     public const int RowHeight = 32;
-    public static readonly Color WindowSurface = Color.FromArgb(30, 31, 34);
-    public static readonly Color PanelSurface = Color.FromArgb(37, 39, 43);
-    public static readonly Color GridSurface = Color.FromArgb(27, 28, 31);
-    public static readonly Color HeaderSurface = Color.FromArgb(45, 48, 53);
-    public static readonly Color Border = Color.FromArgb(58, 61, 66);
+    public static readonly Color WindowSurface = Color.Black;
+    public static readonly Color PanelSurface = WindowSurface;
+    public static readonly Color GridSurface = Color.FromArgb(30, 30, 30);
+    public static readonly Color HeaderSurface = Color.FromArgb(96, 24, 40);
+    public static readonly Color Border = Color.FromArgb(72, 72, 72);
+    public static readonly Color ActionBorder = Color.FromArgb(145, 58, 76);
     public static readonly Color Text = Color.FromArgb(230, 230, 230);
     public static readonly Color MutedText = Color.FromArgb(154, 154, 154);
-    public static readonly Color Accent = Color.FromArgb(59, 130, 246);
-    public static readonly Color AccentHover = Color.FromArgb(74, 144, 255);
-    public static readonly Color Secondary = Color.FromArgb(48, 51, 57);
-    public static readonly Color Selection = Color.FromArgb(45, 90, 158);
+    public static readonly Color Secondary = HeaderSurface;
+    public static readonly Color HoverSurface = Color.FromArgb(120, 34, 53);
+    public static readonly Color PressedSurface = Color.FromArgb(72, 18, 30);
+    public static readonly Color DisabledSurface = Color.FromArgb(54, 35, 40);
+    public static readonly Color Selection = Color.FromArgb(56, 56, 56);
 
     public static void Apply(Control root)
     {
+        root.BackColor = WindowSurface;
+        root.ForeColor = Text;
         switch (root)
         {
-            case Form form: form.BackColor = WindowSurface; form.ForeColor = Text; break;
             case DataGridView table: StyleTable(table); break;
             case TextBox text: text.BackColor = GridSurface; text.ForeColor = Text; text.BorderStyle = BorderStyle.FixedSingle; break;
+            case SharedActionButton action: action.ApplyTheme(); break;
             case Button button: StyleButton(button); break;
             case Label label: label.ForeColor = label.Tag as string == "Muted" ? MutedText : Text; break;
-            case TabPage page: page.BackColor = WindowSurface; page.ForeColor = Text; break;
-            case Panel panel: panel.BackColor = WindowSurface; panel.ForeColor = Text; break;
         }
         foreach (Control child in root.Controls) Apply(child);
     }
@@ -37,10 +46,12 @@ public static class SharedTheme
     public static void StyleTable(DataGridView table)
     {
         table.EnableHeadersVisualStyles = false;
-        table.BackgroundColor = GridSurface;
+        table.BackgroundColor = WindowSurface;
         table.GridColor = Border;
         table.CellBorderStyle = DataGridViewCellBorderStyle.None;
         table.BorderStyle = BorderStyle.None;
+        table.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+        table.ColumnHeadersHeight = HeaderHeight;
         table.RowTemplate.Height = RowHeight;
         table.RowTemplate.MinimumHeight = RowHeight;
         foreach (DataGridViewRow row in table.Rows) row.Height = RowHeight;
@@ -56,8 +67,26 @@ public static class SharedTheme
         table.AlternatingRowsDefaultCellStyle.ForeColor = Text;
         table.AlternatingRowsDefaultCellStyle.SelectionBackColor = Selection;
         table.AlternatingRowsDefaultCellStyle.SelectionForeColor = Color.White;
+        table.ColumnAdded -= StyleAddedColumn;
+        table.ColumnAdded += StyleAddedColumn;
+        foreach (DataGridViewColumn column in table.Columns) StyleColumn(column);
         table.RowPostPaint -= PaintRowOutline;
         table.RowPostPaint += PaintRowOutline;
+    }
+
+    private static void StyleAddedColumn(object? sender, DataGridViewColumnEventArgs e) => StyleColumn(e.Column);
+
+    private static void StyleColumn(DataGridViewColumn column)
+    {
+        column.HeaderText = column.HeaderText.ToUpperInvariant();
+        if (column is not DataGridViewButtonColumn button) return;
+        button.FlatStyle = FlatStyle.Flat;
+        button.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+        button.DefaultCellStyle.BackColor = Secondary;
+        button.DefaultCellStyle.ForeColor = Text;
+        button.DefaultCellStyle.SelectionBackColor = Selection;
+        button.DefaultCellStyle.SelectionForeColor = Color.White;
+        button.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
     }
 
     public static Rectangle RowOutlineBounds(DataGridView table, int rowIndex)
@@ -79,14 +108,13 @@ public static class SharedTheme
 
     private static void StyleButton(Button button)
     {
-        var primary = button.Tag as string == "Primary";
         button.UseVisualStyleBackColor = false;
         button.FlatStyle = FlatStyle.Flat;
         button.FlatAppearance.BorderSize = 1;
-        button.FlatAppearance.BorderColor = primary ? Accent : Border;
-        button.BackColor = primary ? Accent : Secondary;
-        button.ForeColor = primary ? Color.White : Text;
-        button.FlatAppearance.MouseOverBackColor = primary ? AccentHover : HeaderSurface;
-        button.FlatAppearance.MouseDownBackColor = primary ? Accent : Border;
+        button.FlatAppearance.BorderColor = ActionBorder;
+        button.BackColor = Secondary;
+        button.ForeColor = Text;
+        button.FlatAppearance.MouseOverBackColor = HoverSurface;
+        button.FlatAppearance.MouseDownBackColor = PressedSurface;
     }
 }

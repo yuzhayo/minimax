@@ -13,7 +13,7 @@ namespace ChromeProfileLauncher.Areas.ActionBar;
 
 internal sealed class ActionBarSettings : IActionBarItem
 {
-    public string Scope => "MiniMax"; public string Id => "settings"; public int Order => 0; public int Width => 90;
+    public string Scope => "MiniMax"; public string Id => "settings"; public int Order => 0;
     public Type ConnectionContract => typeof(IMiniMaxActionContext);
     private IMiniMaxActionContext? _context; private MiniMaxSettingsForm? _screen;
     private IMiniMaxUpdateService? _updates;

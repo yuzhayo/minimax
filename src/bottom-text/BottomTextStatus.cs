@@ -12,7 +12,7 @@ internal sealed class BottomTextStatus : IBottomTextItem
     public string Scope => "MiniMax";
     public string Id => "status";
     public int Order => 0;
-    public int Height => 32;
+    public int Height => SharedTheme.StatusTextHeight;
     public Type ConnectionContract => typeof(IMiniMaxBottomTextContext);
     private IMiniMaxBottomTextContext? _context;
     private Label? _label;

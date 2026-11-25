@@ -70,7 +70,7 @@ internal static class MiniMaxUpdateTests
                 new WindowLayoutStore(Path.Combine(directory, "layout.json")));
             var controls = Descendants(form).ToArray();
             assert(controls.OfType<Label>().Any(label => label.Text.StartsWith("Current version: 1.0.0", StringComparison.Ordinal)) &&
-                controls.OfType<Button>().Single(button => button.Text == "Check for updates").Enabled == false,
+                controls.OfType<Button>().Single(button => button.Text == "CHECK FOR UPDATES").Enabled == false,
                 "Settings version/update presentation is wrong");
         });
         SynchronizationContext.SetSynchronizationContext(null);

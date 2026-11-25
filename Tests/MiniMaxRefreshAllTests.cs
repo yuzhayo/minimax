@@ -110,7 +110,7 @@ internal static class MiniMaxRefreshAllTests
             var buttons = Children(form).OfType<Button>().Where(button => button.Parent is TableLayoutPanel).ToArray();
             var table = (TableLayoutPanel)buttons[0].Parent!;
             var labels = buttons.OrderBy(b => table.GetColumn(b)).Select(b => b.Text);
-            assert(labels.SequenceEqual(new[] { "setting", "profile", "Check in", "sign in all", "refresh all", "Clear claimed" }), "Wrong toolbar order");
+            assert(labels.SequenceEqual(new[] { "SETTING", "PROFILE", "CHECK IN", "SIGN IN ALL", "REFRESH ALL", "CLEAR CLAIMED" }), "Wrong toolbar order or casing");
             assert(!Children(form).OfType<TextBox>().Any(), "URL still in main window");
             form.Rows.Add(Row(1)); var hidden = Row(2); hidden.IsChecked = false; form.Rows.Add(hidden);
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
@@ -120,7 +120,7 @@ internal static class MiniMaxRefreshAllTests
             new MiniMaxOAuthRefreshBatchRunner().RunAsync(visible, (r, p, t) => { called.Add(r.DirectoryName); p.Report("Done"); return Task.CompletedTask; }, new ProgressLog(), CancellationToken.None).GetAwaiter().GetResult();
             assert(called.SequenceEqual(new[] { "Profile 1" }), "Refresh all included the hidden profile");
             var operation = form.AppContext.Operations.Begin(MiniMaxOperationKind.RefreshAll)!;
-            assert(buttons.Single(b => b.Text == "Stop").Enabled && !buttons.Single(b => b.Text == "sign in all").Enabled && !buttons.Single(b => b.Text == "Check in").Enabled &&
+            assert(buttons.Single(b => b.Text == "STOP").Enabled && !buttons.Single(b => b.Text == "SIGN IN ALL").Enabled && !buttons.Single(b => b.Text == "CHECK IN").Enabled &&
                 !form.ProfileTable.Enabled, "Active refresh-all button did not become Stop");
             var actionArea = form.Areas.OfType<MiniMaxWindowActionBarArea>().Single();
             var refresh = actionArea.Items.OfType<ActionBarRefresh>().Single();
@@ -132,9 +132,9 @@ internal static class MiniMaxRefreshAllTests
             var keptRows = (System.ComponentModel.BindingList<ProfileRow>)form.ProfileTable.DataSource!;
             assert(!operation.Token.IsCancellationRequested && form.Rows[0].IsChecked && keptRows.Count == 1, "Midnight cleared selection or cancelled an active operation");
             form.AppContext.Operations.RequestStop();
-            assert(operation.Token.IsCancellationRequested && buttons.Single(b => b.Text == "Stopping…").Enabled, "Stop did not enter Stopping state");
+            assert(operation.Token.IsCancellationRequested && buttons.Single(b => b.Text == "STOPPING…").Enabled, "Stop did not enter Stopping state");
             form.AppContext.Operations.End(operation);
-            assert(form.AppContext.Operations.Active == null && buttons.Single(b => b.Text == "refresh all").Enabled &&
+            assert(form.AppContext.Operations.Active == null && buttons.Single(b => b.Text == "REFRESH ALL").Enabled &&
                 form.ProfileTable.Enabled, "Busy state not restored");
         });
         // UI construction leaves a WinForms context; following async tests use no pump.

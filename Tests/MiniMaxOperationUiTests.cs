@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -45,24 +46,74 @@ internal static class MiniMaxOperationUiTests
 
         foreach (var entry in new[]
         {
-            (MiniMaxOperationKind.CheckIn, "Check in"),
-            (MiniMaxOperationKind.SignInAll, "sign in all"),
-            (MiniMaxOperationKind.RefreshAll, "refresh all")
+            (MiniMaxOperationKind.CheckIn, "CHECK IN"),
+            (MiniMaxOperationKind.SignInAll, "SIGN IN ALL"),
+            (MiniMaxOperationKind.RefreshAll, "REFRESH ALL")
         })
         test(entry.Item2 + " becomes Stop, Stopping, then restores", () =>
         {
             var session = form.AppContext.Operations.Begin(entry.Item1)!;
-            var active = Descendants(form).OfType<Button>().Single(button => button.Text == "Stop");
-            assert(active.Enabled && !Button("setting").Enabled && !Button("profile").Enabled && !Button("Clear claimed").Enabled &&
+            var active = Descendants(form).OfType<Button>().Single(button => button.Text == "STOP");
+            assert(active.Enabled && !Button("SETTING").Enabled && !Button("PROFILE").Enabled && !Button("CLEAR CLAIMED").Enabled &&
                 !form.ProfileTable.Enabled, "Toolbar running presentation is wrong");
             click.Invoke(active, new object[] { EventArgs.Empty });
-            assert(active.Text == "Stopping…" && session.Token.IsCancellationRequested, "Active toolbar button did not request Stop");
+            assert(active.Text == "STOPPING…" && session.Token.IsCancellationRequested, "Active toolbar button did not request Stop");
             form.AppContext.Operations.End(session);
-            assert(Button(entry.Item2).Enabled && Button("Check in").Enabled && Button("sign in all").Enabled &&
-                Button("refresh all").Enabled && form.ProfileTable.Enabled, "Toolbar idle presentation was not restored");
+            assert(Button(entry.Item2).Enabled && Button("CHECK IN").Enabled && Button("SIGN IN ALL").Enabled &&
+                Button("REFRESH ALL").Enabled && form.ProfileTable.Enabled, "Toolbar idle presentation was not restored");
         });
 
         form.Rows.Add(Row(1)); form.Rows.Add(Row(2)); form.AppContext.RefreshSelected();
+        test("main window uses compact proportional spacing with maroon controls and headers", () =>
+        {
+            static bool Same(Color left, Color right) => left.ToArgb() == right.ToArgb();
+            var table = form.ProfileTable;
+            form.CreateControl();
+            table.CreateControl();
+            Application.DoEvents();
+            var buttons = Descendants(form).OfType<SharedActionButton>().ToArray();
+            var toolbar = (TableLayoutPanel)buttons[0].Parent!;
+            var firstButton = buttons.Single(button => toolbar.GetColumn(button) == 0);
+            var rootPanel = form.Controls.OfType<TableLayoutPanel>().Single();
+            var darkSurfaces = Descendants(form).Where(control => control is Panel or UserControl).ToArray();
+            var signIn = (DataGridViewButtonColumn)table.Columns[3];
+            var refresh = (DataGridViewButtonColumn)table.Columns[4];
+
+            assert(Same(form.BackColor, Color.Black) && darkSurfaces.All(control => Same(control.BackColor, Color.Black)) &&
+                Same(table.BackgroundColor, Color.Black), "Window/action/body/text surfaces are not uniformly black");
+            assert(Same(SharedTheme.HeaderSurface, SharedTheme.Secondary) &&
+                SharedTheme.HeaderSurface.R > SharedTheme.HeaderSurface.G * 2 &&
+                SharedTheme.HeaderSurface.R > SharedTheme.HeaderSurface.B &&
+                buttons.All(button => Same(button.BackColor, SharedTheme.Secondary)) &&
+                Same(table.ColumnHeadersDefaultCellStyle.BackColor, SharedTheme.HeaderSurface),
+                "Toolbar buttons and table header are not the same dark maroon");
+            assert(table.RowsDefaultCellStyle.BackColor.R > 0 && table.RowsDefaultCellStyle.BackColor.R < 64 &&
+                Same(table.RowsDefaultCellStyle.BackColor, table.AlternatingRowsDefaultCellStyle.BackColor) &&
+                !Same(table.RowsDefaultCellStyle.BackColor, Color.Black), "Table rows are not a consistent dark charcoal");
+            assert(table.Columns.Cast<DataGridViewColumn>().All(column => column.HeaderText == column.HeaderText.ToUpperInvariant()),
+                "Not every table header is uppercase");
+            assert(table.ColumnHeadersHeight == 28 && table.ColumnHeadersHeightSizeMode == DataGridViewColumnHeadersHeightSizeMode.DisableResizing,
+                "Table header is not the shared taller height");
+            assert(signIn.FlatStyle == FlatStyle.Flat && refresh.FlatStyle == FlatStyle.Flat &&
+                signIn.DefaultCellStyle.Alignment == DataGridViewContentAlignment.MiddleCenter &&
+                refresh.DefaultCellStyle.Alignment == DataGridViewContentAlignment.MiddleCenter &&
+                signIn.HeaderCell.Style.Alignment == DataGridViewContentAlignment.MiddleCenter &&
+                refresh.HeaderCell.Style.Alignment == DataGridViewContentAlignment.MiddleCenter,
+                "Sign-in/refresh headers or row actions are not centered dark flat buttons");
+            assert(table.Rows[0].Cells[3].FormattedValue?.ToString() == "SIGN IN" &&
+                table.Rows[0].Cells[4].FormattedValue?.ToString() == "REFRESH" &&
+                form.Rows[0].SignInStatus == "Sign in" && form.Rows[0].RefreshTokenStatus == "Refresh" &&
+                table.Rows[0].Cells[1].FormattedValue?.ToString() == "Fixture 1" &&
+                table.Rows[0].Cells[2].FormattedValue?.ToString() == "fixture1@example.com",
+                "Action captions were not uppercased independently of profile/account row content");
+            assert(toolbar.Padding.Left == 3 && buttons.All(button => button.Margin == new Padding(0, 2, 12, 2)) &&
+                table.Margin.Left == 3, "Toolbar buttons do not share one gap or table inset");
+            assert(rootPanel.Padding.Top == 4 && rootPanel.Padding.Bottom == 4 && rootPanel.RowStyles[0].Height == 34 &&
+                rootPanel.Controls.Cast<Control>().All(control => control.Margin == Padding.Empty),
+                "Action strip still stacks window, area and button spacing");
+            assert(rootPanel.RowStyles[2].SizeType == SizeType.Absolute && rootPanel.RowStyles[2].Height == 42,
+                "Bottom text area did not shrink proportionally to 42 pixels");
+        });
         foreach (var entry in new[]
         {
             (MiniMaxOperationKind.SignInRow, "sign-in", "Sign in"),
@@ -73,8 +124,8 @@ internal static class MiniMaxOperationUiTests
             var row = form.Rows[0]; var other = form.Rows[1];
             var session = form.AppContext.Operations.Begin(entry.Item1, row)!;
             string Label() => entry.Item1 == MiniMaxOperationKind.SignInRow ? row.SignInStatus : row.RefreshTokenStatus;
-            assert(Label() == "Stop" && form.ProfileTable.Enabled && !Button("Check in").Enabled && !Button("sign in all").Enabled &&
-                !Button("refresh all").Enabled, "Row running presentation is wrong");
+            assert(Label() == "Stop" && form.ProfileTable.Enabled && !Button("CHECK IN").Enabled && !Button("SIGN IN ALL").Enabled &&
+                !Button("REFRESH ALL").Enabled, "Row running presentation is wrong");
             form.AppContext.RowActions.TryGet(entry.Item2, out var action);
             action.Invoke(other);
             assert(!session.Token.IsCancellationRequested, "Unrelated row stopped the active row");
@@ -90,7 +141,7 @@ internal static class MiniMaxOperationUiTests
             var message = Message.Create(IntPtr.Zero, Win32Window.WM_HOTKEY, (IntPtr)Win32Window.HOTKEY_STOP, IntPtr.Zero);
             var args = new object[] { message };
             typeof(AppWindow).GetMethod("WndProc", flags)!.Invoke(form, args);
-            assert(session.Token.IsCancellationRequested && Descendants(form).OfType<Button>().Single(button => button.Text == "Stopping…") != null,
+            assert(session.Token.IsCancellationRequested && Descendants(form).OfType<Button>().Single(button => button.Text == "STOPPING…") != null,
                 "Hotkey bypassed the shared Stop transition");
             form.AppContext.Operations.End(session);
         });
@@ -99,8 +150,10 @@ internal static class MiniMaxOperationUiTests
         {
             void Styled(DataGridView table) => assert(table.CellBorderStyle == DataGridViewCellBorderStyle.None &&
                 table.RowTemplate.Height == SharedTheme.RowHeight && table.RowsDefaultCellStyle.BackColor == table.AlternatingRowsDefaultCellStyle.BackColor &&
-                table.RowsDefaultCellStyle.SelectionBackColor != table.RowsDefaultCellStyle.BackColor,
-                "Grid still has stripes/cell borders or lost selection styling");
+                table.RowsDefaultCellStyle.SelectionBackColor != table.RowsDefaultCellStyle.BackColor &&
+                table.ColumnHeadersHeight == 28 && table.ColumnHeadersDefaultCellStyle.BackColor.ToArgb() == SharedTheme.HeaderSurface.ToArgb() &&
+                table.Columns.Cast<DataGridViewColumn>().All(column => column.HeaderText == column.HeaderText.ToUpperInvariant()),
+                "Grid still has stripes/cell borders, lost maroon header styling, or has a non-uppercase header");
             Styled(form.ProfileTable);
             var rows = new BindingList<ProfileRow> { Row(3) };
             using var profile = new ProfileSelectionForm(rows, new CheckedProfilesStore(Path.Combine(directory, "profile-checked.json")),

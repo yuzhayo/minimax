@@ -12,7 +12,7 @@ internal sealed class BottomTextProgress : IBottomTextItem
     public string Scope => "MiniMax";
     public string Id => "progress";
     public int Order => 1;
-    public int Height => 26;
+    public int Height => SharedTheme.ProgressTextHeight;
     public Type ConnectionContract => typeof(IMiniMaxBottomTextContext);
     private IMiniMaxBottomTextContext? _context;
     private Label? _label;

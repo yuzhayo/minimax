@@ -33,10 +33,18 @@ internal sealed class BodyProfilesTable : IBodyComponent
         _table.DataSource = _context.SelectedRows;
         SharedWindowLayout.ApplyColumns(_table, _context.Layout.MainColumns);
         _table.CellContentClick += CellClicked;
+        _table.CellFormatting += FormatActionCaption;
         _context.SelectedRows.ListChanged += RowsChanged;
         _context.Operations.Changed += OperationChanged;
         _context.AttachMainTable(_table);
         return _table;
+    }
+    private static void FormatActionCaption(object? sender, DataGridViewCellFormattingEventArgs e)
+    {
+        if (sender is not DataGridView table || e.RowIndex < 0 || e.ColumnIndex < 0 ||
+            table.Columns[e.ColumnIndex] is not DataGridViewButtonColumn || e.Value is not string value) return;
+        e.Value = value.ToUpperInvariant();
+        e.FormattingApplied = true;
     }
     private void CellClicked(object? sender, DataGridViewCellEventArgs e)
     {
@@ -71,7 +79,7 @@ internal sealed class BodyProfilesTable : IBodyComponent
     public void WindowClosed() { }
     public void Dispose()
     {
-        if (_table != null) _table.CellContentClick -= CellClicked;
+        if (_table != null) { _table.CellContentClick -= CellClicked; _table.CellFormatting -= FormatActionCaption; }
         if (_context != null) { _context.SelectedRows.ListChanged -= RowsChanged; _context.Operations.Changed -= OperationChanged; }
     }
 }

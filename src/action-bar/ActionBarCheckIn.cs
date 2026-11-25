@@ -13,7 +13,7 @@ namespace ChromeProfileLauncher.Areas.ActionBar;
 
 internal sealed class ActionBarCheckIn : IActionBarItem
 {
-    public string Scope => "MiniMax"; public string Id => "check-in"; public int Order => 2; public int Width => 110;
+    public string Scope => "MiniMax"; public string Id => "check-in"; public int Order => 2;
     public Type ConnectionContract => typeof(IMiniMaxActionContext);
     private IMiniMaxActionContext? _context;
     public Control Build(WindowAreaBuildContext build, object connection)

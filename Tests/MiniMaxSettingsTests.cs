@@ -54,7 +54,7 @@ internal static class MiniMaxSettingsTests
                 foreach (Control child in parent.Controls) { yield return child; foreach (var nested in Children(child)) yield return nested; }
             }
             assert(!Children(main).OfType<TextBox>().Any(), "URL input still exists in main window");
-            var button = Children(main).OfType<Button>().SingleOrDefault(b => b.Text == "setting");
+            var button = Children(main).OfType<Button>().SingleOrDefault(b => b.Text == "SETTING");
             assert(button != null, "Setting button missing");
             var action = main.Areas.OfType<MiniMaxWindowActionBarArea>().Single().Items.OfType<ActionBarSettings>().Single();
             var click = typeof(Button).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;

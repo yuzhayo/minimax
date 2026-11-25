@@ -14,7 +14,7 @@ namespace ChromeProfileLauncher.Areas.ActionBar;
 
 internal sealed class ActionBarSignIn : IActionBarItem
 {
-    public string Scope => "MiniMax"; public string Id => "sign-in"; public int Order => 3; public int Width => 110;
+    public string Scope => "MiniMax"; public string Id => "sign-in"; public int Order => 3;
     public Type ConnectionContract => typeof(IMiniMaxActionContext);
     private IMiniMaxActionContext? _context;
     private readonly MiniMaxSignInBatchRunner _batch = new();

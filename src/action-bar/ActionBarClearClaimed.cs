@@ -11,7 +11,7 @@ namespace ChromeProfileLauncher.Areas.ActionBar;
 
 internal sealed class ActionBarClearClaimed : IActionBarItem
 {
-    public string Scope => "MiniMax"; public string Id => "clear-claimed"; public int Order => 5; public int Width => 130;
+    public string Scope => "MiniMax"; public string Id => "clear-claimed"; public int Order => 5;
     public Type ConnectionContract => typeof(IMiniMaxActionContext);
     private IMiniMaxActionContext? _context;
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 30000 };

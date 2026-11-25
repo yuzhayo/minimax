@@ -7,6 +7,7 @@ public class SharedOutlinedTable : DataGridView
     public SharedOutlinedTable(bool readOnly = true)
     {
         Dock = DockStyle.Fill;
+        Margin = new Padding(SharedTheme.ContentInset);
         AutoGenerateColumns = false;
         AllowUserToAddRows = false;
         AllowUserToDeleteRows = false;

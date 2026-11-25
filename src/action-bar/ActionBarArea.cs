@@ -13,7 +13,6 @@ namespace ChromeProfileLauncher.Areas.ActionBar;
 public interface IActionBarItem : IScopedDeclaration, IDisposable
 {
     int Order { get; }
-    int Width { get; }
     Type ConnectionContract { get; }
     Control? Build(WindowAreaBuildContext context, object connection);
     Task InitializeAsync(CancellationToken token) => Task.CompletedTask;
@@ -32,14 +31,22 @@ public sealed class ActionBarArea : UserControl
     {
         Dock = DockStyle.Fill;
         _items = ScopedDiscovery.Discover<IActionBarItem>(assembly, scope).OrderBy(item => item.Order).ToArray();
-        var panel = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 1, ColumnCount = _items.Count + 1 };
+        var panel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            RowCount = 1,
+            ColumnCount = _items.Count + 1,
+            Padding = new Padding(SharedTheme.ContentInset, 0, 0, 0)
+        };
         var column = 0;
         foreach (var item in _items)
         {
             _ = context.RequireConnection(item.ConnectionContract);
             var control = item.Build(context, context.RequireConnection(item.ConnectionContract));
             if (control == null) continue;
-            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, item.Width));
+            if (control is not SharedActionButton)
+                throw new InvalidOperationException("Action bar items must build SharedActionButton controls: " + item.Id);
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, SharedActionButton.SlotWidth));
             panel.Controls.Add(control, column++, 0);
         }
         panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));

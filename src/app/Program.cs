@@ -38,10 +38,10 @@ internal static class Program
             return ok ? 0 : 1;
         }
 
-        Application.SetColorMode(SystemColorMode.Dark);
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         Application.SetHighDpiMode(HighDpiMode.SystemAware);
+        Application.SetColorMode(SystemColorMode.Dark);
 
         Application.Run(new MiniMaxForm());
 

@@ -36,14 +36,24 @@ public class AppWindow : Form
         { StartPosition = FormStartPosition.Manual; Bounds = bounds; }
         else { StartPosition = FormStartPosition.CenterScreen; Size = options.DefaultSize; }
 
-        _root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, Padding = new Padding(10) };
-        _root.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
+        _root = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 3,
+            Padding = new Padding(10, SharedTheme.WindowVerticalInset, 10, SharedTheme.WindowVerticalInset)
+        };
+        _root.RowStyles.Add(new RowStyle(SizeType.Absolute, SharedTheme.ActionBarHeight));
         _root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        _root.RowStyles.Add(new RowStyle(SizeType.Absolute, 64));
+        _root.RowStyles.Add(new RowStyle(SizeType.Absolute, SharedTheme.BottomTextHeight));
         var context = new WindowAreaBuildContext(this, connections.Require, PerformLayout,
             (table, count) => SharedAdaptiveWindow.FitRows(this, table, count), Close);
         foreach (var area in _areas)
-            _root.Controls.Add(area.Build(context, connections.Require(area.ConnectionContract)), 0, (int)area.Placement);
+        {
+            var control = area.Build(context, connections.Require(area.ConnectionContract));
+            control.Margin = Padding.Empty;
+            _root.Controls.Add(control, 0, (int)area.Placement);
+        }
         Controls.Add(_root);
 
         Shown += async (_, _) => await InitializeAreasAsync();

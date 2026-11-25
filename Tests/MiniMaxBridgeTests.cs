@@ -390,8 +390,8 @@ internal static class MiniMaxBridgeTests
         {
             using var form = new ChromeProfileLauncher.UI.MiniMaxForm(); // Not shown; no Load/OAuth/browser calls.
             Assert(form.ProfileTable.Columns.Count == 5);
-            Assert(form.ProfileTable.Columns[3] is System.Windows.Forms.DataGridViewButtonColumn && form.ProfileTable.Columns[3].HeaderText == "Sign in");
-            Assert(form.ProfileTable.Columns[4] is System.Windows.Forms.DataGridViewButtonColumn && form.ProfileTable.Columns[4].HeaderText == "Refresh token");
+            Assert(form.ProfileTable.Columns[3] is System.Windows.Forms.DataGridViewButtonColumn && form.ProfileTable.Columns[3].HeaderText == "SIGN IN");
+            Assert(form.ProfileTable.Columns[4] is System.Windows.Forms.DataGridViewButtonColumn && form.ProfileTable.Columns[4].HeaderText == "REFRESH TOKEN");
             form.Rows.Add(new ProfileRow(new ChromeProfile { DirectoryName = "fixture-A", Name = "A" }) { IsChecked = true });
             form.Rows.Add(new ProfileRow(new ChromeProfile { DirectoryName = "fixture-B", Name = "B" }) { IsChecked = false });
             form.AppContext.RefreshSelected();
@@ -400,7 +400,7 @@ internal static class MiniMaxBridgeTests
             Assert(!System.Text.Json.JsonSerializer.Serialize(rows).Contains("accessToken"));
         });
         Test("manual Link screen removed", () => Assert(!typeof(ChromeProfileLauncher.UI.MiniMaxForm).Assembly.GetTypes().Any(t => t.Name == "MiniMaxProfileLinkDialog")));
-        Test("all toolbar buttons share one spacing and height preset", () =>
+        Test("all toolbar buttons use one rounded component, width, gap and vertical alignment", () =>
         {
             using var form = new ChromeProfileLauncher.UI.MiniMaxForm();
             IEnumerable<System.Windows.Forms.Control> Descendants(System.Windows.Forms.Control parent)
@@ -413,16 +413,24 @@ internal static class MiniMaxBridgeTests
             }
             var buttons = Descendants(form).OfType<SharedActionButton>().ToArray();
             Assert(buttons.Length == 6);
-            Assert(buttons.All(b => b.Margin == new System.Windows.Forms.Padding(6, 2, 6, 2) &&
-                b.Padding == new System.Windows.Forms.Padding(8, 0, 8, 0) && b.MinimumSize.Height == 30 &&
+            Assert(buttons.All(b => b.Margin == new System.Windows.Forms.Padding(0, 2, 12, 2) &&
+                b.Padding == new System.Windows.Forms.Padding(6, 0, 6, 0) && b.MinimumSize.Height == 30 &&
                 b.Dock == System.Windows.Forms.DockStyle.Fill));
             var toolbar = (System.Windows.Forms.TableLayoutPanel)buttons[0].Parent!;
-            toolbar.Size = new System.Drawing.Size(900, 38);
+            toolbar.Size = new System.Drawing.Size(900, 34);
             toolbar.PerformLayout();
-            Assert(buttons.Select(b => b.Height).Distinct().Count() == 1);
+            var ordered = buttons.OrderBy(button => toolbar.GetColumn(button)).ToArray();
+            Assert(toolbar.ColumnStyles.Cast<System.Windows.Forms.ColumnStyle>().Take(buttons.Length)
+                .All(style => style.SizeType == System.Windows.Forms.SizeType.Absolute && style.Width == 130));
+            Assert(buttons.Select(b => b.Width).Distinct().Count() == 1 && buttons.Select(b => b.Height).Distinct().Count() == 1 &&
+                buttons.Select(b => b.Top).Distinct().Count() == 1);
+            Assert(ordered.Zip(ordered.Skip(1), (left, right) => right.Left - left.Right).All(gap => gap == 12));
             Assert(buttons.All(b => System.Windows.Forms.TextRenderer.MeasureText(b.Text, b.Font).Width + b.Padding.Horizontal + 2 <= b.Width), "Toolbar label is clipped by the shared padding.");
-            Assert(buttons.Single(b => b.Text == "Check in").Tag as string == "Primary");
-            Assert(!buttons.Any(b => b.Text == "Stop"));
+            Assert(typeof(SharedActionButton).GetProperty("CornerRadius")?.GetValue(buttons[0]) is int radius && radius is >= 4 and <= 6 &&
+                typeof(SharedActionButton).GetMethod("OnPaint", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.DeclaringType == typeof(SharedActionButton),
+                "Shared action button does not own its rounded rendering");
+            Assert(buttons.Single(b => b.Text == "CHECK IN").Tag as string == "Primary");
+            Assert(!buttons.Any(b => b.Text == "STOP"));
         });
     }
 
@@ -525,19 +533,46 @@ internal static class MiniMaxBridgeTests
                 if (form.Rows.Count == 0 || refresh.IsLoading) return;
                 var visible = form.ProfileTable.Rows.Cast<System.Windows.Forms.DataGridViewRow>().Select(r => r.DataBoundItem).OfType<ProfileRow>().ToArray();
                 Assert(visible.Length == expectedCount && visible.All(r => r.IsChecked), "Actual main table does not show the expected selected profiles.");
-                Assert(form.ProfileTable.Columns.Count == 5 && form.ProfileTable.Columns[3].HeaderText == "Sign in" && form.ProfileTable.Columns[4].HeaderText == "Refresh token", "Actual main table is missing sign-in/refresh controls.");
+                Assert(form.ProfileTable.Columns.Count == 5 && form.ProfileTable.Columns.Cast<System.Windows.Forms.DataGridViewColumn>().All(column => column.HeaderText == column.HeaderText.ToUpperInvariant()) && form.ProfileTable.Columns[3].HeaderText == "SIGN IN" && form.ProfileTable.Columns[4].HeaderText == "REFRESH TOKEN", "Actual main table is missing uppercase sign-in/refresh controls.");
                 var buttons = Children(form).OfType<SharedActionButton>().ToArray();
-                Assert(buttons.Length == 6 && !buttons.Any(b => b.Text == "Stop") && buttons.Any(b => b.Text == "sign in all"), "Actual toolbar still has standalone Stop or lost sign in all.");
+                Assert(buttons.Length == 6 && !buttons.Any(b => b.Text == "STOP") && buttons.Any(b => b.Text == "SIGN IN ALL"), "Actual toolbar still has standalone Stop or lost sign in all.");
+                var firstButton = buttons.OrderBy(button => button.PointToScreen(System.Drawing.Point.Empty).X).First();
+                Assert(firstButton.PointToScreen(System.Drawing.Point.Empty).X == form.ProfileTable.PointToScreen(System.Drawing.Point.Empty).X,
+                    "Actual toolbar does not begin on the table's left edge.");
+                var orderedButtons = buttons.OrderBy(button => button.PointToScreen(System.Drawing.Point.Empty).X).ToArray();
+                var actualGaps = orderedButtons.Zip(orderedButtons.Skip(1), (left, right) =>
+                    right.PointToScreen(System.Drawing.Point.Empty).X - (left.PointToScreen(System.Drawing.Point.Empty).X + left.Width)).ToArray();
+                var clientTop = form.PointToScreen(System.Drawing.Point.Empty).Y;
+                var buttonTop = firstButton.PointToScreen(System.Drawing.Point.Empty).Y;
+                var tableTop = form.ProfileTable.PointToScreen(System.Drawing.Point.Empty).Y;
+                Assert(buttons.Select(button => button.Width).Distinct().Count() == 1 &&
+                    buttons.Select(button => button.PointToScreen(System.Drawing.Point.Empty).Y).Distinct().Count() == 1 &&
+                    actualGaps.All(gap => gap == 12), "Actual toolbar buttons do not have one width, baseline and gap.");
+                Assert(buttonTop - clientTop == 6 && tableTop - (buttonTop + firstButton.Height) == 5,
+                    "Actual action-strip top and bottom gaps are not proportional.");
                 Assert(form.ProfileTable.CellBorderStyle == System.Windows.Forms.DataGridViewCellBorderStyle.None &&
                     form.ProfileTable.RowTemplate.Height == SharedTheme.RowHeight &&
-                    form.ProfileTable.RowsDefaultCellStyle.BackColor == form.ProfileTable.AlternatingRowsDefaultCellStyle.BackColor,
+                    form.ProfileTable.RowsDefaultCellStyle.BackColor == form.ProfileTable.AlternatingRowsDefaultCellStyle.BackColor &&
+                    form.BackColor.ToArgb() == System.Drawing.Color.Black.ToArgb() &&
+                    form.ProfileTable.BackgroundColor.ToArgb() == System.Drawing.Color.Black.ToArgb() &&
+                    buttons.All(button => button.BackColor.ToArgb() == SharedTheme.Secondary.ToArgb()) &&
+                    form.ProfileTable.ColumnHeadersDefaultCellStyle.BackColor.ToArgb() == SharedTheme.HeaderSurface.ToArgb() &&
+                    form.ProfileTable.ColumnHeadersHeight == 28 && SharedTheme.HeaderSurface.R > SharedTheme.HeaderSurface.G * 2,
                     "Actual main table did not receive unified outlined-row styling.");
+                Assert(form.ProfileTable.Rows[0].Cells[3].FormattedValue?.ToString() == "SIGN IN" &&
+                    form.ProfileTable.Rows[0].Cells[4].FormattedValue?.ToString() == "REFRESH" &&
+                    visible[0].SignInStatus == "Sign in" && visible[0].RefreshTokenStatus == "Refresh",
+                    "Actual row action casing changed model content or did not render uppercase.");
+                var rootPanel = form.Controls.OfType<System.Windows.Forms.TableLayoutPanel>().Single();
+                Assert(rootPanel.RowStyles[2].SizeType == System.Windows.Forms.SizeType.Absolute &&
+                    rootPanel.RowStyles[2].Height == SharedTheme.BottomTextHeight,
+                    "Actual bottom text area is not compact.");
                 Assert(form.ProfileTable.DisplayedRowCount(false) == expectedCount &&
                     form.Bottom <= System.Windows.Forms.Screen.FromControl(form).WorkingArea.Bottom,
                     "Main window did not resize within the monitor to show every selected profile row.");
                 Assert(visible.Any(r => r.UserName == "yuzz.cezh10@gmail.com") && visible.Any(r => r.UserName == "yuzz.cezh11@gmail.com"), "Original cezh10/11 profiles were not restored.");
                 Assert(refresh.Runner == null);
-                Console.WriteLine($"SELECTION_UI PASS: all {visible.Length} outlined rows visible; fitted window; 6-button stateful toolbar; no OAuth/check-in");
+                Console.WriteLine($"SELECTION_UI PASS: {visible.Length} dark rows; taller maroon header; equal rounded buttons/gaps; compact proportional strip; no OAuth/check-in");
                 timer.Stop(); form.Close();
             }
             catch (Exception ex) { error = ex.GetBaseException().Message; timer.Stop(); form.Close(); }
@@ -568,12 +603,12 @@ internal static class MiniMaxBridgeTests
                 if (watch.Elapsed > TimeSpan.FromSeconds(40)) throw new TimeoutException("UI settings check timed out.");
                 if (refresh.IsLoading) return;
                 var buttons = Children(main).OfType<SharedActionButton>().ToArray();
-                Assert(buttons.Length == 6 && buttons.Select(b => b.Height).Distinct().Count() == 1 && buttons.Any(b => b.Text == "sign in all") && !buttons.Any(b => b.Text == "Stop"));
+                Assert(buttons.Length == 6 && buttons.Select(b => b.Height).Distinct().Count() == 1 && buttons.Any(b => b.Text == "SIGN IN ALL") && !buttons.Any(b => b.Text == "STOP"));
                 Assert(!Children(main).OfType<System.Windows.Forms.TextBox>().Any());
-                buttons.Single(b => b.Text == "setting").PerformClick();
+                buttons.Single(b => b.Text == "SETTING").PerformClick();
                 var screen = settingsAction.Screen!;
                 Assert(screen.Visible && screen.Owner == main);
-                buttons.Single(b => b.Text == "setting").PerformClick();
+                buttons.Single(b => b.Text == "SETTING").PerformClick();
                 Assert(ReferenceEquals(screen, settingsAction.Screen));
                 var input = Children(screen).OfType<System.Windows.Forms.TextBox>().Single();
                 input.Text = "example.com/ui-check";

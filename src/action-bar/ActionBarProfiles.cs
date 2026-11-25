@@ -15,7 +15,7 @@ namespace ChromeProfileLauncher.Areas.ActionBar;
 
 internal sealed class ActionBarProfiles : IActionBarItem
 {
-    public string Scope => "MiniMax"; public string Id => "profiles"; public int Order => 1; public int Width => 80;
+    public string Scope => "MiniMax"; public string Id => "profiles"; public int Order => 1;
     public Type ConnectionContract => typeof(IMiniMaxActionContext);
     private IMiniMaxActionContext? _context; private ProfileSelectionForm? _screen;
     public Control Build(WindowAreaBuildContext build, object connection)

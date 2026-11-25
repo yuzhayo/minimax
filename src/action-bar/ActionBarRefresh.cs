@@ -16,7 +16,7 @@ namespace ChromeProfileLauncher.Areas.ActionBar;
 
 internal sealed class ActionBarRefresh : IActionBarItem
 {
-    public string Scope => "MiniMax"; public string Id => "refresh"; public int Order => 4; public int Width => 120;
+    public string Scope => "MiniMax"; public string Id => "refresh"; public int Order => 4;
     public Type ConnectionContract => typeof(IMiniMaxActionContext);
     private IMiniMaxActionContext? _context;
     private MiniMaxOAuthRefreshRunner? _runner;
