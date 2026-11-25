@@ -11,6 +11,8 @@ dotnet build -c Release
 & .\bin\Release\net10.0-windows\MiniMax.exe
 ```
 
+Current version: **1.0.0**. `version.props` is the single version source.
+
 ## Project layout
 
 ```text
@@ -112,6 +114,7 @@ remove task-owned leftovers afterward.
 - [Settings and refresh-all phase plan](MiniMaxSettingsRefreshAllPlan.md)
 - [Sign-in implementation task list](MiniMaxSignInImplementationPlan.md)
 - [.NET 10 reusable foundation plan](DotNet10ReusableAppFoundationPlan.md)
+- [Portable release and GitHub workflow](docs/operations/release.md)
 
 The Chrome Profile Launcher remains at `C:\Apps\launcher`. Its MiniMax button
 prefers this repository's executable; its build-order reference does not share

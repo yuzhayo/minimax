@@ -1,0 +1,82 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version increment after the first release
+        required: true
+        default: patch
+        type: choice
+        options: [patch, minor, major]
+
+permissions:
+  checks: read
+  contents: write
+
+concurrency:
+  group: minimax-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 40
+    steps:
+      - name: Require main branch
+        if: github.ref != 'refs/heads/main'
+        shell: pwsh
+        run: throw 'Release must be run from main.'
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+      - name: Require green CI for this exact commit
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          $response = gh api 'repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs' | ConvertFrom-Json
+          $green = @($response.check_runs | Where-Object { $_.name -eq 'build' -and $_.conclusion -eq 'success' })
+          if ($green.Count -eq 0) { throw 'The build check has not passed for this exact commit.' }
+      - name: Determine release version
+        id: version
+        shell: pwsh
+        run: |
+          $version = ./tools/Get-ReleaseVersion.ps1 -Bump '${{ inputs.bump }}'
+          "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Prepare release notes
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path artifacts -Force | Out-Null
+          $previousTag = git tag --sort=-v:refname | Select-Object -First 1
+          $lines = if ($previousTag) { @(git log "$previousTag..HEAD" --pretty=format:'- %s') } else { @('- Initial MiniMax portable release.') }
+          @("# MiniMax ${{ steps.version.outputs.version }}", '', $lines) |
+            Set-Content -LiteralPath artifacts/release-notes.md -Encoding utf8
+      - name: Build portable release
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: ./tools/Build-Portable.ps1 -Version '${{ steps.version.outputs.version }}'
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $zip = "Releases/MiniMax-v$version-win-x64-portable.zip"
+          $sha = "$zip.sha256"
+          gh release create "v$version" $zip $sha `
+            --repo '${{ github.repository }}' `
+            --target '${{ github.sha }}' `
+            --title "MiniMax $version" `
+            --notes-file artifacts/release-notes.md
+      - name: Release summary
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $zip = Get-Item "Releases/MiniMax-v$version-win-x64-portable.zip"
+          $hash = (Get-FileHash -LiteralPath $zip.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          @("## MiniMax $version", '', "Portable: $($zip.Name)", "SHA-256: ``$hash``") >> $env:GITHUB_STEP_SUMMARY

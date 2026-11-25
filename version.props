@@ -1,0 +1,10 @@
+<Project>
+  <!-- Single source of truth for local builds, portable packages and GitHub releases. -->
+  <PropertyGroup>
+    <MiniMaxVersion Condition="'$(MiniMaxVersion)' == ''">1.0.0</MiniMaxVersion>
+    <Version>$(MiniMaxVersion)</Version>
+    <AssemblyVersion>$(MiniMaxVersion).0</AssemblyVersion>
+    <FileVersion>$(MiniMaxVersion).0</FileVersion>
+    <InformationalVersion>$(MiniMaxVersion)</InformationalVersion>
+  </PropertyGroup>
+</Project>

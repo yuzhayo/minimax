@@ -149,7 +149,6 @@ internal static class MiniMaxBridgeTests
     private static void DatabaseTests()
     {
         var fixture = Path.Combine(Root, "fixture.sqlite");
-        var backup = @"C:\Apps\9router\data\db\backups\minimax-bridge-baseline-20261125-202043\data.sqlite";
         var source = Guid.NewGuid();
         var target = Guid.NewGuid();
         var now = DateTimeOffset.UtcNow;
@@ -160,15 +159,22 @@ internal static class MiniMaxBridgeTests
         void Reset()
         {
             foreach (var suffix in new[] { "", "-wal", "-shm" }) if (File.Exists(fixture + suffix)) File.Delete(fixture + suffix);
-            File.Copy(backup, fixture);
-            Sql("UPDATE providerConnections SET data='{}'"); // Fixture strips all real credentials immediately; never printed.
             using var c = Open();
+            using (var schema = c.CreateCommand())
+            {
+                schema.CommandText = "CREATE TABLE _meta(key TEXT PRIMARY KEY,value TEXT); " +
+                    "INSERT INTO _meta VALUES('schemaVersion','1'),('backupSchemaVersion','2'),('appVersion','0.5.104'); " +
+                    "CREATE TABLE providerConnections(id TEXT PRIMARY KEY,provider TEXT,authType TEXT,name TEXT,priority INTEGER,isActive INTEGER,data TEXT,createdAt TEXT,updatedAt TEXT);";
+                schema.ExecuteNonQuery();
+            }
             void Insert(Guid id, string name, string data, DateTimeOffset created)
             {
                 using var cmd = c.CreateCommand();
                 cmd.CommandText = "INSERT INTO providerConnections(id,provider,authType,name,priority,isActive,data,createdAt,updatedAt) VALUES($id,'minimax-code-global','oauth',$name,99,0,$data,$created,$created)";
                 cmd.Parameters.AddWithValue("$id", id.ToString()); cmd.Parameters.AddWithValue("$name", name); cmd.Parameters.AddWithValue("$data", data); cmd.Parameters.AddWithValue("$created", created.ToString("O")); cmd.ExecuteNonQuery();
             }
+            for (var index = 0; index < 20; index++)
+                Insert(Guid.NewGuid(), "Fixture " + index, "{}", now.AddDays(-2));
             Insert(target, "Old name", "{\"accessToken\":\"old\",\"refreshToken\":\"old-refresh\",\"providerSpecificData\":{\"proxyPoolId\":\"preserve\"},\"custom\":123,\"lastError\":\"old-error\",\"modelLock_MiniMax-M3\":\"locked\"}", now.AddDays(-1));
             Insert(source, "Account 22", new JsonObject { ["accessToken"] = "fixture-access", ["refreshToken"] = "fixture-refresh", ["expiresAt"] = now.AddHours(12).ToString("O"), ["expiresIn"] = 43200 }.ToJsonString(), now);
         }
@@ -218,7 +224,12 @@ internal static class MiniMaxBridgeTests
         });
         Test("account-count drift rejected", () => { Reset(); var before = Snapshot(); Reject<InvalidDataException>(() => bridge.Merge(request with { OriginalAccountCount = 20 })); Assert(Snapshot() == before); });
         Test("busy transaction respects bounded timeout", () => { Reset(); using var c = Open(); using var tx = c.BeginTransaction(deferred: false); var watch = System.Diagnostics.Stopwatch.StartNew(); Reject<SqliteException>(() => bridge.Merge(request)); Assert(watch.Elapsed < TimeSpan.FromSeconds(5)); });
-        Test("live schema validation is read only", () => new NineRouterDatabaseBridge(new NineRouterPaths().DatabasePath).ValidateReadOnly());
+        Test("schema validation is read only for portable fixture and optional live database", () =>
+        {
+            bridge.ValidateReadOnly();
+            var live = new NineRouterPaths().DatabasePath;
+            if (File.Exists(live)) new NineRouterDatabaseBridge(live).ValidateReadOnly();
+        });
     }
 
     private sealed class FakeWindows : INineRouterChromeWindows

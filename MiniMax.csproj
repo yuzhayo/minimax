@@ -11,6 +11,11 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>MiniMax</AssemblyName>
     <RootNamespace>ChromeProfileLauncher</RootNamespace>
+    <AssemblyTitle>MiniMax</AssemblyTitle>
+    <Product>MiniMax</Product>
+    <Authors>yuzhayo</Authors>
+    <RepositoryUrl>https://github.com/yuzhayo/minimax</RepositoryUrl>
+    <Description>Chrome-profile MiniMax sign-in, check-in and 9Router token manager.</Description>
     <!-- Test runner has its own entry point and output; not part of the GUI. -->
     <DefaultItemExcludes>$(DefaultItemExcludes);Tests\**;Foundation\**;SecondHostFixture\**</DefaultItemExcludes>
 
