@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- UIAutomationClient (UI Automation) ships in the WPF profile. We need it to
+         find and press the web button inside a running Chrome window. -->
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>MiniMax</AssemblyName>
+    <RootNamespace>ChromeProfileLauncher</RootNamespace>
+    <!-- Test runner has its own entry point and output; not part of the GUI. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Tests\**;Foundation\**;SecondHostFixture\**</DefaultItemExcludes>
+
+    <!-- The MiniMax logo is the app icon: the exe in Explorer and the window title bar. -->
+    <ApplicationIcon>MiniMax.ico</ApplicationIcon>
+
+    <!-- WinForms dark mode remains evaluation-only in this target. -->
+    <NoWarn>$(NoWarn);WFO5001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="Foundation\AppFoundation.csproj" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.23" />
+    <!-- Every source this app needs lives inside this folder. It builds and
+         publishes entirely on its own, with no links to the launcher. -->
+    <EmbeddedResource Include="MiniMax.ico" LogicalName="MiniMax.ico" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+# Generated build outputs (including the test project)
+**/bin/
+**/obj/
+/publish/
+
+# Job scratch, fixtures and redirectable tool caches
+/.agents-temp/
+
+# Private local Chrome/profile backups: preserve on disk, never commit
+/Backups/
+
+# Windows/IDE machine-local files
+desktop.ini
+*.user
+*.suo
+*.tmp
