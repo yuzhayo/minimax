@@ -66,7 +66,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           $version = '${{ steps.version.outputs.version }}'
-          $zip = "Releases/MiniMax-v$version-win-x64-portable.zip"
+          $zip = "artifacts/releases/MiniMax-v$version-win-x64-portable.zip"
           $sha = "$zip.sha256"
           gh release create "v$version" $zip $sha `
             --repo '${{ github.repository }}' `
@@ -77,6 +77,6 @@ jobs:
         shell: pwsh
         run: |
           $version = '${{ steps.version.outputs.version }}'
-          $zip = Get-Item "Releases/MiniMax-v$version-win-x64-portable.zip"
+          $zip = Get-Item "artifacts/releases/MiniMax-v$version-win-x64-portable.zip"
           $hash = (Get-FileHash -LiteralPath $zip.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
           @("## MiniMax $version", '', "Portable: $($zip.Name)", "SHA-256: ``$hash``") >> $env:GITHUB_STEP_SUMMARY

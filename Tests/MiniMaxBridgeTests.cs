@@ -38,6 +38,7 @@ internal static class MiniMaxBridgeTests
             OAuthTests();
             AuthorizationTests();
             MiniMaxSignInTests.Run(Test, Assert);
+            MiniMaxUpdateTests.Run(Root, Test, Assert);
             MiniMaxSettingsTests.Run(Root, Test, Assert);
             MiniMaxMidnightTests.Run(Root, Test, Assert);
             MiniMaxOperationUiTests.Run(Root, Test, Assert);

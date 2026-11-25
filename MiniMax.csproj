@@ -20,7 +20,7 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);Tests\**;Foundation\**;SecondHostFixture\**</DefaultItemExcludes>
 
     <!-- The MiniMax logo is the app icon: the exe in Explorer and the window title bar. -->
-    <ApplicationIcon>MiniMax.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\MiniMax.ico</ApplicationIcon>
 
     <!-- WinForms dark mode remains evaluation-only in this target. -->
     <NoWarn>$(NoWarn);WFO5001</NoWarn>
@@ -31,7 +31,7 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.23" />
     <!-- Every source this app needs lives inside this folder. It builds and
          publishes entirely on its own, with no links to the launcher. -->
-    <EmbeddedResource Include="MiniMax.ico" LogicalName="MiniMax.ico" />
+    <EmbeddedResource Include="Assets\MiniMax.ico" LogicalName="MiniMax.ico" />
   </ItemGroup>
 
 </Project>

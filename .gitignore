@@ -3,7 +3,7 @@
 **/obj/
 /publish/
 /artifacts/
-/Releases/
+/Portable/
 
 # Job scratch, fixtures and redirectable tool caches
 /.agents-temp/

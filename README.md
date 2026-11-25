@@ -1,33 +1,27 @@
 # MiniMax
 
-Independent Windows C# / .NET 10 WinForms application built on a reusable local foundation.
+Independent Windows C# / .NET 10 WinForms application.
 Repository root: `C:\Apps\minimax`.
 
 ## Build and run
 
 ```powershell
 cd C:\Apps\minimax
-dotnet build -c Release
+& .\tools\Build-Dev.ps1
 & .\bin\Release\net10.0-windows\MiniMax.exe
 ```
 
-Current version: **1.0.0**. `version.props` is the single version source.
+`version.props` is the single version source. Developer output is disposable;
+normal daily use runs the installed GitHub release from `Portable\MiniMax.exe`.
 
-## Project layout
+## Source layout
 
 ```text
-Foundation/                    Reusable .NET 10 Window/Areas/Shared UI library
-App/                           MiniMax composition state and narrow area contracts
-Areas/ActionBar/               All actions and Start/Stop mechanisms
-Areas/Body/                    Main table and discoverable column children
-Areas/BottomText/              All main-window status/progress text
-Areas/WindowAreas/             Three MiniMax area declarations
-Features/                      Check-in (including simulation), sign-in, refresh, profiles, settings, browser and 9Router logic
-Models/                        Profile data and 9Router connection contracts
-MiniMaxForm.cs                 Thin FoundationWindow wrapper only
-SecondHostFixture/             Independent proof app consuming Foundation
-Tests/                         Foundation, architecture, bridge, UI and workflow tests
-MiniMax.ico / MiniMax.svg      App icon and original artwork
+Features/                      Check-in, sign-in, refresh, profiles, settings, browser and 9Router behavior
+Models/                        Profile and connection data
+Tests/                         Focused behavior and UI verification
+tools/                         Build, test and portable-release commands
+Assets/                        App icon and original SVG artwork
 Backups/                       Private local backups; ignored by Git
 ```
 
@@ -55,6 +49,10 @@ live there, not on the main toolbar. Valid HTTP(S) URL edits are normalized and
 saved automatically in `%LOCALAPPDATA%\ChromeProfileLauncher\minimax-settings.json`.
 Invalid edits leave the last saved valid URL unchanged. Check in reads that saved
 value. The settings window's size/position is remembered with the other layouts.
+It also displays the running version and a manual **Check for updates** action.
+Portable builds silently check GitHub once per launch; the update popup appears
+only when a newer stable release exists, then downloads, verifies, installs into
+the current Portable folder and restarts MiniMax automatically.
 
 **Sign in** opens the saved MiniMax URL for that row's Chrome profile. If the
 profile window is already open, Chrome receives a new tab; otherwise one window
@@ -107,14 +105,13 @@ The test runner uses local fixtures; its optional live modes must be requested
 explicitly. Keep scratch/cache data under this repository's `.agents-temp\` and
 remove task-owned leftovers afterward.
 
-## Notes
+## Release
 
-- [OAuth investigation and behavior](9RouterMiniMaxOAuthNotes.md)
-- [Sequential implementation plan and verification](9RouterTokenRefreshBridgePlan.md)
-- [Settings and refresh-all phase plan](MiniMaxSettingsRefreshAllPlan.md)
-- [Sign-in implementation task list](MiniMaxSignInImplementationPlan.md)
-- [.NET 10 reusable foundation plan](DotNet10ReusableAppFoundationPlan.md)
-- [Portable release and GitHub workflow](docs/operations/release.md)
+See [the portable release guide](docs/operations/release.md).
+
+```powershell
+& .\tools\Install-GitHubPortable.ps1
+```
 
 The Chrome Profile Launcher remains at `C:\Apps\launcher`. Its MiniMax button
 prefers this repository's executable; its build-order reference does not share

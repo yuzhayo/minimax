@@ -36,6 +36,6 @@ jobs:
         with:
           name: minimax-portable-${{ github.sha }}
           path: |
-            Releases/MiniMax-v*-win-x64-portable.zip
-            Releases/MiniMax-v*-win-x64-portable.zip.sha256
+            artifacts/releases/MiniMax-v*-win-x64-portable.zip
+            artifacts/releases/MiniMax-v*-win-x64-portable.zip.sha256
           if-no-files-found: error

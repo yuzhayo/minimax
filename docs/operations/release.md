@@ -5,8 +5,8 @@ does not need a separate .NET 10 Desktop Runtime installation.
 
 ## Version source
 
-`version.props` is the only checked-in version source. It currently starts at
-`1.0.0` and supplies package, assembly, file and informational versions to every
+`version.props` is the only checked-in version source. It supplies package,
+assembly, file and informational versions to every
 project through `Directory.Build.props`.
 
 ## Local package
@@ -19,14 +19,14 @@ project through `Directory.Build.props`.
 Outputs:
 
 ```text
-artifacts/publish/win-x64/              complete self-contained payload
-Releases/MiniMax-v1.0.0-win-x64-portable.zip
-Releases/MiniMax-v1.0.0-win-x64-portable.zip.sha256
+artifacts/releases/MiniMax-v<version>-win-x64-portable.zip
+artifacts/releases/MiniMax-v<version>-win-x64-portable.zip.sha256
 ```
 
-The package script validates Windows file/product versions, Foundation and SQLite
+The package script validates Windows file/product versions and required runtime
 dependencies, and runs the published executable's browser-free simulation before
 creating the ZIP.
+Packaging staging and RID/helper build output are removed after success.
 
 Do not distribute `MiniMax.exe` alone. The app requires the other files in the
 portable ZIP.
@@ -40,6 +40,17 @@ commit whose `build` check is green.
 
 The first release is `v1.0.0`. Later releases derive from the highest `v*` tag.
 The workflow publishes the portable ZIP and its SHA-256 file to GitHub Releases.
+
+## Daily Portable installation and updates
+
+`tools/Install-GitHubPortable.ps1` downloads and verifies a GitHub release before
+replacing the ignored `Portable/` folder. The launcher prefers that released copy
+over developer output.
+
+Portable MiniMax checks the latest stable GitHub release once per launch in the
+background. It stays silent when current/offline; only a newer version opens the
+automatic download/install/restart popup. Development builds display their version
+but never overwrite `bin/` from GitHub.
 
 ## Deliberate limits
 

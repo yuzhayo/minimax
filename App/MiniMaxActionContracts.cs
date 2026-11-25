@@ -5,7 +5,7 @@ using ChromeProfileLauncher.Models;
 
 namespace ChromeProfileLauncher.App;
 
-internal enum MiniMaxOperationKind { CheckIn, SignInAll, RefreshAll, SignInRow, RefreshRow }
+internal enum MiniMaxOperationKind { CheckIn, SignInAll, RefreshAll, SignInRow, RefreshRow, Update }
 internal enum MiniMaxOperationPhase { Running, Stopping }
 
 internal interface IMiniMaxOperationSession

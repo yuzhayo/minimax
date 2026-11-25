@@ -20,7 +20,7 @@ internal static class MiniMaxOperationUiTests
 
     public static void Run(string root, Action<string, Action> test, Action<bool, string> assert)
     {
-        test("operation session has one idempotent Stop transition for all five kinds", () =>
+        test("operation session has one idempotent Stop transition for every operation kind", () =>
         {
             foreach (var kind in Enum.GetValues<MiniMaxOperationKind>())
             {

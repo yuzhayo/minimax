@@ -2,7 +2,7 @@ param(
     [string] $Version = (& (Join-Path $PSScriptRoot 'Get-ProjectVersion.ps1')),
     [ValidateSet('win-x64')][string] $Runtime = 'win-x64',
     [string] $PublishDirectory = (Join-Path $PSScriptRoot '..\artifacts\publish\win-x64'),
-    [string] $OutputDirectory = (Join-Path $PSScriptRoot '..\Releases')
+    [string] $OutputDirectory = (Join-Path $PSScriptRoot '..\artifacts\releases')
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -38,8 +38,8 @@ if ($versionInfo.FileVersion -ne "$Version.0" -or -not $versionInfo.ProductVersi
 }
 $manifest = [ordered]@{ product='MiniMax'; version=$Version; runtime=$Runtime; distribution='portable-self-contained'; mainExecutable='MiniMax.exe' } | ConvertTo-Json
 [System.IO.File]::WriteAllText((Join-Path $publish 'release.json'),$manifest,[System.Text.UTF8Encoding]::new($false))
-& $exe --simulate
-if ($LASTEXITCODE -ne 0) { throw 'Published portable simulation failed.' }
+$simulation = Start-Process -FilePath $exe -ArgumentList '--simulate' -NoNewWindow -Wait -PassThru
+if ($simulation.ExitCode -ne 0) { throw "Published portable simulation failed with exit code $($simulation.ExitCode)." }
 $zipName = "MiniMax-v$Version-$Runtime-portable.zip"
 $zip = Join-Path $output $zipName
 $shaFile = Join-Path $output "$zipName.sha256"
@@ -48,4 +48,11 @@ if (Test-Path -LiteralPath $shaFile) { Remove-Item -LiteralPath $shaFile -Force 
 Compress-Archive -Path (Join-Path $publish '*') -DestinationPath $zip -CompressionLevel Optimal
 $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
 [System.IO.File]::WriteAllText($shaFile,"$hash  $zipName`n",[System.Text.UTF8Encoding]::new($false))
-[pscustomobject]@{ Version=$Version; Runtime=$Runtime; PortableZip=$zip; Sha256File=$shaFile; Sha256=$hash; FileVersion=$versionInfo.FileVersion; ProductVersion=$versionInfo.ProductVersion } | ConvertTo-Json
+$result = [pscustomobject]@{ Version=$Version; Runtime=$Runtime; PortableZip=$zip; Sha256File=$shaFile; Sha256=$hash; FileVersion=$versionInfo.FileVersion; ProductVersion=$versionInfo.ProductVersion }
+if (Test-Path -LiteralPath $publish) { Remove-Item -LiteralPath $publish -Recurse -Force }
+$publishParent = Split-Path $publish
+if ((Test-Path -LiteralPath $publishParent) -and @(Get-ChildItem -LiteralPath $publishParent -Force).Count -eq 0) {
+    Remove-Item -LiteralPath $publishParent
+}
+& (Join-Path $PSScriptRoot 'Clean-DevOutput.ps1') -PreserveMainRelease
+$result | ConvertTo-Json
