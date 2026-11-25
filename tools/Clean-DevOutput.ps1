@@ -11,9 +11,9 @@ foreach ($process in Get-Process -Name MiniMax -ErrorAction SilentlyContinue) {
     } finally { $process.Dispose() }
 }
 $paths = if ($PreserveMainRelease) {
-    @('obj','Foundation\bin','Foundation\obj','Tests\bin','Tests\obj','SecondHostFixture\bin','SecondHostFixture\obj')
+    @('obj','Tests\bin','Tests\obj')
 } else {
-    @('bin','obj','Foundation\bin','Foundation\obj','Tests\bin','Tests\obj','SecondHostFixture\bin','SecondHostFixture\obj')
+    @('bin','obj','Tests\bin','Tests\obj')
 }
 foreach ($relative in $paths) {
     $path = Join-Path $root $relative

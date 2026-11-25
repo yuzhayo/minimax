@@ -17,7 +17,7 @@
     <RepositoryUrl>https://github.com/yuzhayo/minimax</RepositoryUrl>
     <Description>Chrome-profile MiniMax sign-in, check-in and 9Router token manager.</Description>
     <!-- Test runner has its own entry point and output; not part of the GUI. -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);Tests\**;Foundation\**;SecondHostFixture\**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Tests\**</DefaultItemExcludes>
 
     <!-- The MiniMax logo is the app icon: the exe in Explorer and the window title bar. -->
     <ApplicationIcon>Assets\MiniMax.ico</ApplicationIcon>
@@ -27,7 +27,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="Foundation\AppFoundation.csproj" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.23" />
     <!-- Every source this app needs lives inside this folder. It builds and
          publishes entirely on its own, with no links to the launcher. -->

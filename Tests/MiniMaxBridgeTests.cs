@@ -4,7 +4,7 @@ using Microsoft.Data.Sqlite;
 using System.Text.Json.Nodes;
 using System.IO;
 using System.Net.Http;
-using AppFoundation.Shared.UI;
+using ChromeProfileLauncher.Shared;
 using ChromeProfileLauncher.Areas.ActionBar;
 using ChromeProfileLauncher.Areas.WindowAreas;
 
@@ -30,8 +30,8 @@ internal static class MiniMaxBridgeTests
                 return 0;
             }
             MappingTests();
-            FoundationWindowTests.Run(Test, Assert);
-            FoundationArchitectureTests.Run(Test, Assert);
+            AppWindowTests.Run(Test, Assert);
+            ArchitectureTests.Run(Test, Assert);
             AccountTests();
             DatabaseTests();
             ChromeTests();

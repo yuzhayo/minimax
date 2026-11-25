@@ -9,13 +9,15 @@
 
 ## Current ownership
 
-- `MiniMaxForm.cs` is composition-only.
-- `Areas/ActionBar/` owns actions and Start/Stop/Stopping coordination.
-- `Areas/Body/` owns the main table and column placement.
-- `Areas/BottomText/` owns main-window status/progress text.
-- `Features/` owns check-in, sign-in, refresh, update, profile, settings, browser and 9Router behavior.
-- `Foundation/` and `SecondHostFixture/` are internal engineering details. Do not advertise them in public README/release text.
-- Reusable visual mechanics stay internal under `Foundation/Shared/UI/`; feature controllers stay with their owner.
+- `src/window/` owns the composition-only window and area connections.
+- `src/action-bar/` owns actions and Start/Stop/Stopping coordination.
+- `src/body/` owns the main table and column placement.
+- `src/bottom-text/` owns main-window status/progress text.
+- `src/features/` owns check-in, sign-in, refresh, update, profile, settings, browser and 9Router behavior.
+- `src/models/` owns profile and connection data.
+- `shared/components/` owns reusable visual controls.
+- `shared/logic/` owns reusable non-feature mechanics.
+- There is no physical Foundation project or Foundation runtime DLL.
 
 ## Required behavior
 
@@ -41,6 +43,34 @@
 
 ## Verification
 
-- Run the focused test executable, second-host fixture verification and 9/9 browser-free simulation.
+- Run the focused test executable and 9/9 browser-free simulation.
 - Preserve 20 selected profiles, 18 MiniMax Global accounts and an empty pending-refresh journal.
 - Report actual build/test/release results; do not equate a local package with a published GitHub release.
+
+## New-app foundation blueprint
+
+“Foundation” means this documented construction pattern for an agent creating a
+new sibling application. It does not mean referencing MiniMax or creating a shared
+Foundation project/DLL.
+
+```text
+new-app/
+├─ src/
+│  ├─ window/
+│  ├─ action-bar/
+│  ├─ body/
+│  ├─ bottom-text/
+│  ├─ features/
+│  └─ models/
+├─ shared/
+│  ├─ components/
+│  └─ logic/
+├─ tests/
+├─ Assets/
+├─ tools/
+├─ AGENTS.md
+└─ <App>.csproj
+```
+
+The new app copies the ownership concept and contracts, then implements its own
+logic and elements. It must not depend on MiniMax assemblies or source.

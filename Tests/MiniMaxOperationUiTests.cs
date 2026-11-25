@@ -5,8 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
-using AppFoundation.Shared.UI;
-using AppFoundation.Window;
+using ChromeProfileLauncher.Shared;
+using ChromeProfileLauncher.Window;
 using ChromeProfileLauncher.Areas.ActionBar;
 using ChromeProfileLauncher.Models;
 using ChromeProfileLauncher.Services;
@@ -89,7 +89,7 @@ internal static class MiniMaxOperationUiTests
             var session = form.AppContext.Operations.Begin(MiniMaxOperationKind.CheckIn)!;
             var message = Message.Create(IntPtr.Zero, Win32Window.WM_HOTKEY, (IntPtr)Win32Window.HOTKEY_STOP, IntPtr.Zero);
             var args = new object[] { message };
-            typeof(FoundationWindow).GetMethod("WndProc", flags)!.Invoke(form, args);
+            typeof(AppWindow).GetMethod("WndProc", flags)!.Invoke(form, args);
             assert(session.Token.IsCancellationRequested && Descendants(form).OfType<Button>().Single(button => button.Text == "Stopping…") != null,
                 "Hotkey bypassed the shared Stop transition");
             form.AppContext.Operations.End(session);

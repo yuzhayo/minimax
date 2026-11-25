@@ -17,8 +17,9 @@ normal daily use runs the installed GitHub release from `Portable\MiniMax.exe`.
 ## Source layout
 
 ```text
-Features/                      Check-in, sign-in, refresh, profiles, settings, browser and 9Router behavior
-Models/                        Profile and connection data
+src/                           MiniMax window, areas, features and models
+shared/components/             Reusable visual controls
+shared/logic/                  Reusable non-feature mechanics
 Tests/                         Focused behavior and UI verification
 tools/                         Build, test and portable-release commands
 Assets/                        App icon and original SVG artwork
@@ -117,5 +118,5 @@ The Chrome Profile Launcher remains at `C:\Apps\launcher`. Its MiniMax button
 prefers this repository's executable; its build-order reference does not share
 any source with this app.
 
-`bin/`, `obj/`, `.agents-temp/`, `Backups/` and `desktop.ini` are ignored by Git.
+`bin/`, `obj/`, `.agents-temp/`, `Portable/`, `Backups/` and `desktop.ini` are ignored by Git.
 Private backups are retained locally, not committed.

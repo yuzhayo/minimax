@@ -8,13 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Foundation\AppFoundation.csproj" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.23" />
-    <Compile Include="..\Models\*.cs" Link="Models\%(Filename)%(Extension)" />
-    <Compile Include="..\Features\**\*.cs" Link="Features\%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Include="..\App\*.cs" Link="App\%(Filename)%(Extension)" />
-    <Compile Include="..\Areas\**\*.cs" Link="Areas\%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Include="..\MiniMaxForm.cs" Link="MiniMaxForm.cs" />
-    <Compile Include="..\UI\*.cs" Link="UI\%(Filename)%(Extension)" />
+    <Compile Include="..\src\**\*.cs" Exclude="..\src\app\Program.cs" Link="src\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\shared\**\*.cs" Link="shared\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

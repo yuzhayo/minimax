@@ -26,7 +26,7 @@ New-Item -ItemType Directory -Path $output -Force | Out-Null
     '-p:PublishSingleFile=false' '-p:PublishTrimmed=false' '-p:DebugType=None' '-p:DebugSymbols=false'
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 $exe = Join-Path $publish 'MiniMax.exe'
-foreach ($required in @($exe,(Join-Path $publish 'MiniMax.dll'),(Join-Path $publish 'AppFoundation.dll'))) {
+foreach ($required in @($exe,(Join-Path $publish 'MiniMax.dll'))) {
     if (-not (Test-Path -LiteralPath $required -PathType Leaf)) { throw "Portable payload is missing: $required" }
 }
 if (@(Get-ChildItem -LiteralPath $publish -Recurse -Filter 'e_sqlite3.dll' -File).Count -eq 0) {
