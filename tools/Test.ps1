@@ -10,6 +10,7 @@ if (-not $scratch.StartsWith($root.TrimEnd('\') + '\', [StringComparison]::Ordin
     throw "Scratch directory must stay inside the repository: $scratch"
 }
 New-Item -ItemType Directory -Path $scratch -Force | Out-Null
+& (Join-Path $PSScriptRoot 'Test-ReleaseAutomation.ps1')
 foreach ($project in @('MiniMax.csproj','Tests\MiniMaxBridgeTests.csproj')) {
     & dotnet build (Join-Path $root $project) --configuration $Configuration --nologo
     if ($LASTEXITCODE -ne 0) { throw "Build failed for $project with exit code $LASTEXITCODE." }

@@ -22,7 +22,8 @@ internal static class MiniMaxUpdateTests
         test("development build reports version but disables portable installation", () =>
         {
             var runtime = MiniMaxVersionProvider.Read();
-            assert(runtime.DisplayVersion.StartsWith("1.0.0", StringComparison.Ordinal) && !runtime.IsPortable && runtime.PortableReason!.Contains("Development build"),
+            assert(runtime.Version.Major > 0 && runtime.DisplayVersion == runtime.Version.ToString(3) &&
+                !runtime.IsPortable && runtime.PortableReason!.Contains("Development build"),
                 "Development version/portable state is wrong");
         });
         test("GitHub release client selects exact stable portable assets", () =>
@@ -38,9 +39,10 @@ internal static class MiniMaxUpdateTests
         test("staged update validates manifest and executable version", () =>
         {
             var stage = Path.Combine(root, "update-stage"); Directory.CreateDirectory(stage);
+            var version = MiniMaxVersionProvider.Read().Version.ToString(3);
             File.Copy(Environment.ProcessPath!, Path.Combine(stage, "MiniMax.exe"), true);
-            File.WriteAllText(Path.Combine(stage, "release.json"), "{\"version\":\"1.0.0\",\"distribution\":\"portable-self-contained\"}");
-            MiniMaxUpdateCoordinator.ValidateStage(stage, "1.0.0");
+            File.WriteAllText(Path.Combine(stage, "release.json"), $"{{\"version\":\"{version}\",\"distribution\":\"portable-self-contained\"}}");
+            MiniMaxUpdateCoordinator.ValidateStage(stage, version);
         });
         test("update payload copy replaces a complete directory tree", () =>
         {
@@ -66,10 +68,11 @@ internal static class MiniMaxUpdateTests
         test("settings displays current version and disabled update action in development", () =>
         {
             var directory = Path.Combine(root, "update-settings"); Directory.CreateDirectory(directory);
+            var runtime = MiniMaxVersionProvider.Read();
             using var form = new MiniMaxSettingsForm(new MiniMaxSettingsStore(Path.Combine(directory, "settings.json")),
                 new WindowLayoutStore(Path.Combine(directory, "layout.json")));
             var controls = Descendants(form).ToArray();
-            assert(controls.OfType<Label>().Any(label => label.Text.StartsWith("Current version: 1.0.0", StringComparison.Ordinal)) &&
+            assert(controls.OfType<Label>().Any(label => label.Text == "Current version: " + runtime.DisplayVersion) &&
                 controls.OfType<Button>().Single(button => button.Text == "CHECK FOR UPDATES").Enabled == false,
                 "Settings version/update presentation is wrong");
         });
